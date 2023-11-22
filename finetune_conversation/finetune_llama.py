@@ -15,7 +15,7 @@
 import os
 from dataclasses import dataclass, field
 from typing import Optional
-
+from peft import LoraConfig, AdaLoraConfig, LoHaConfig, LoKrConfig
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -59,9 +59,16 @@ class ScriptArguments:
     learning_rate: Optional[float] = field(default=2e-4)
     max_grad_norm: Optional[float] = field(default=0.3)
     weight_decay: Optional[int] = field(default=0.001)
+
+    lora_method: Optional[str] = field(
+        default="lora",
+        metadata={"help": "Choose lora method, either lora or adalora,loha,lokr"},
+    )
+    # shared across lora flavours where applicable, use default settings otherwise
     lora_alpha: Optional[int] = field(default=16)
     lora_dropout: Optional[float] = field(default=0.1)
     lora_r: Optional[int] = field(default=64)
+
     max_seq_length: Optional[int] = field(default=512)
     model_name: Optional[str] = field(
         default="meta-llama/Llama-2-7b-hf",
@@ -73,11 +80,16 @@ class ScriptArguments:
         default="timdettmers/openassistant-guanaco",
         metadata={"help": "The preference dataset to use."},
     )
-    use_4bit: Optional[bool] = field(
+    quant_method: Optional[str] = field(
+        default="bnb",
+        metadata={"help": "Choose quantization method, either bnb or autoawq"},
+    )
+    # BNB options start here
+    bnb_use_4bit: Optional[bool] = field(
         default=True,
         metadata={"help": "Activate 4bit precision base model loading"},
     )
-    use_nested_quant: Optional[bool] = field(
+    bnb_use_nested_quant: Optional[bool] = field(
         default=False,
         metadata={"help": "Activate nested quantization for 4bit base models"},
     )
@@ -89,6 +101,8 @@ class ScriptArguments:
         default="nf4",
         metadata={"help": "Quantization type fp4 or nf4"},
     )
+    # AutoAWQ option start here
+
     num_train_epochs: Optional[int] = field(
         default=1,
         metadata={"help": "The number of training epochs for the reward model."},
@@ -142,32 +156,38 @@ script_args = parser.parse_args_into_dataclasses()[0]
 
 
 def create_and_prepare_model(args):
-    compute_dtype = getattr(torch, args.bnb_4bit_compute_dtype)
+    if args.quant_method == "bnb":
+        compute_dtype = getattr(torch, args.bnb_4bit_compute_dtype)
 
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=args.use_4bit,
-        bnb_4bit_quant_type=args.bnb_4bit_quant_type,
-        bnb_4bit_compute_dtype=compute_dtype,
-        bnb_4bit_use_double_quant=args.use_nested_quant,
-    )
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=args.bnb_use_4bit,
+            bnb_4bit_quant_type=args.bnb_4bit_quant_type,
+            bnb_4bit_compute_dtype=compute_dtype,
+            bnb_4bit_use_double_quant=args.bnb_use_nested_quant,
+        )
 
-    if compute_dtype == torch.float16 and args.use_4bit:
-        major, _ = torch.cuda.get_device_capability()
-        if major >= 8:
-            print("=" * 80)
-            print("Your GPU supports bfloat16, you can accelerate training with the argument --bf16")
-            print("=" * 80)
+        if compute_dtype == torch.float16 and args.bnb_use_4bit:
+            major, _ = torch.cuda.get_device_capability()
+            if major >= 8:
+                print("=" * 80)
+                print("Your GPU supports bfloat16, you can accelerate training with the argument --bf16")
+                print("=" * 80)
 
-    # Load the entire model on the GPU 0
-    # switch to `device_map = "auto"` for multi-GPU
-    device_map = {"": 0}
+        # Load the entire model on the GPU 0
+        # switch to `device_map = "auto"` for multi-GPU
+        device_map = {"": 0}
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_name,
-        quantization_config=bnb_config,
-        device_map=device_map,
-        use_auth_token=True
-    )
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_name,
+            quantization_config=bnb_config,
+            device_map=device_map,
+            use_auth_token=True
+        )
+    elif args.quant_method =="autoawq":
+        print("instantiate autoawq model")
+        model = None
+    else:
+        raise("unknown quantization method")
 
     # check: https://github.com/huggingface/transformers/pull/24906
     model.config.pretraining_tp = 1
@@ -175,7 +195,27 @@ def create_and_prepare_model(args):
     tokenizer = AutoTokenizer.from_pretrained(script_args.model_name, trust_remote_code=True)
     tokenizer.pad_token = tokenizer.eos_token
 
-    return model, tokenizer
+    if script_args.lora_method == "lora":
+        peft_config = LoraConfig(
+            lora_alpha=script_args.lora_alpha,
+            lora_dropout=script_args.lora_dropout,
+            r=script_args.lora_r,
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+    elif script_args.lora_method == "adalora":
+        peft_config = None
+
+    elif script_args.lora_method == "loha":
+        peft_config = None
+
+    elif script_args.lora_method == "lokr":
+        peft_config = None
+
+    else:
+        raise("unknown lora config")
+
+    return model, peft_config, tokenizer
 
 
 training_arguments = TrainingArguments(
@@ -195,7 +235,7 @@ training_arguments = TrainingArguments(
     lr_scheduler_type=script_args.lr_scheduler_type,
 )
 
-model, tokenizer = create_and_prepare_model(script_args)
+model, peft_config, tokenizer = create_and_prepare_model(script_args)
 model.config.use_cache = False
 dataset = load_dataset(script_args.dataset_name, split="train")
 
@@ -205,6 +245,7 @@ tokenizer.padding_side = "right"
 trainer = SFTTrainer(
     model=model,
     train_dataset=dataset,
+    peft_config=peft_config,
     dataset_text_field="text",
     max_seq_length=script_args.max_seq_length,
     tokenizer=tokenizer,
@@ -213,3 +254,19 @@ trainer = SFTTrainer(
 )
 
 trainer.train()
+
+if script_args.merge_and_push:
+    output_dir = os.path.join(script_args.output_dir, "final_checkpoints")
+    trainer.model.save_pretrained(output_dir)
+
+    # Free memory for merging weights
+    del model
+    torch.cuda.empty_cache()
+
+    from peft import AutoPeftModelForCausalLM
+
+    model = AutoPeftModelForCausalLM.from_pretrained(output_dir, device_map="auto", torch_dtype=torch.bfloat16)
+    model = model.merge_and_unload()
+
+    output_merged_dir = os.path.join(script_args.output_dir, "final_merged_checkpoint")
+    model.save_pretrained(output_merged_dir, safe_serialization=True)
