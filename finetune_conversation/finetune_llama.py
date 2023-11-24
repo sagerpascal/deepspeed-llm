@@ -53,9 +53,9 @@ class ScriptArguments:
 
     local_rank: Optional[int] = field(default=-1, metadata={"help": "Used for multi-gpu"})
 
-    per_device_train_batch_size: Optional[int] = field(default=4)
+    per_device_train_batch_size: Optional[int] = field(default=1)
     per_device_eval_batch_size: Optional[int] = field(default=1)
-    gradient_accumulation_steps: Optional[int] = field(default=4)
+    gradient_accumulation_steps: Optional[int] = field(default=1)
     learning_rate: Optional[float] = field(default=2e-4)
     max_grad_norm: Optional[float] = field(default=0.3)
     weight_decay: Optional[int] = field(default=0.001)
@@ -204,13 +204,30 @@ def create_and_prepare_model(args):
             task_type="CAUSAL_LM",
         )
     elif script_args.lora_method == "adalora":
-        peft_config = None
+        peft_config = AdaLoraConfig(
+            lora_alpha=script_args.lora_alpha,
+            lora_dropout=script_args.lora_dropout,
+            target_r=script_args.lora_r,
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
 
     elif script_args.lora_method == "loha":
-        peft_config = None
+        peft_config = LoHaConfig(
+            alpha=script_args.lora_alpha,
+            module_dropout=script_args.lora_dropout,
+            r=script_args.lora_r,
+            task_type="CAUSAL_LM",
+        )
 
     elif script_args.lora_method == "lokr":
-        peft_config = None
+        peft_config = LoKrConfig(
+            alpha=script_args.lora_alpha,
+            module_dropout=script_args.lora_dropout,
+            r=script_args.lora_r,
+            task_type="CAUSAL_LM",
+        )
+
 
     else:
         raise("unknown lora config")
