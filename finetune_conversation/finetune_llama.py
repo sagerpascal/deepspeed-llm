@@ -189,7 +189,7 @@ def create_and_prepare_model(args):
         args.model_name,
         quantization_config=bnb_config,
         device_map=device_map,
-        use_flash_attention_2=True,
+        use_flash_attention_2=False,
         use_auth_token=True
     )
 
