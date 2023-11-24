@@ -16,6 +16,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Optional
 from peft import LoraConfig, AdaLoraConfig, LoHaConfig, LoKrConfig
+from awq import AutoAWQForCausalLM
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -81,9 +82,9 @@ class ScriptArguments:
         default="timdettmers/openassistant-guanaco",
         metadata={"help": "The preference dataset to use."},
     )
-    quant_method: Optional[str] = field(
-        default="bnb",
-        metadata={"help": "Choose quantization method, either bnb or autoawq"},
+    quant_method: Optional[int] = field(
+        default=1,
+        metadata={"help": "Choose quantization method should quantisation be used"},
     )
     # BNB options start here
     bnb_use_4bit: Optional[bool] = field(
@@ -157,7 +158,15 @@ script_args = parser.parse_args_into_dataclasses()[0]
 
 
 def create_and_prepare_model(args):
-    if args.quant_method == "bnb":
+
+    tokenizer = AutoTokenizer.from_pretrained(script_args.model_name, trust_remote_code=True)
+    tokenizer.pad_token = tokenizer.eos_token
+
+
+    # Load the entire model on the GPU 0
+    # switch to `device_map = "auto"` for multi-GPU
+    device_map = {"": 0}
+    if args.use_quant == 1:
         compute_dtype = getattr(torch, args.bnb_4bit_compute_dtype)
 
         bnb_config = BitsAndBytesConfig(
@@ -173,28 +182,21 @@ def create_and_prepare_model(args):
                 print("=" * 80)
                 print("Your GPU supports bfloat16, you can accelerate training with the argument --bf16")
                 print("=" * 80)
-
-        # Load the entire model on the GPU 0
-        # switch to `device_map = "auto"` for multi-GPU
-        device_map = {"": 0}
-
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model_name,
-            quantization_config=bnb_config,
-            device_map=device_map,
-            use_auth_token=True
-        )
-    elif args.quant_method =="autoawq":
-        print("instantiate autoawq model")
-        model = None
     else:
-        raise("unknown quantization method")
+        bnb_config = None
+
+
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model_name,
+        quantization_config=bnb_config,
+        device_map=device_map,
+        use_flash_attention_2=True,
+        use_auth_token=True
+    )
+
 
     # check: https://github.com/huggingface/transformers/pull/24906
     model.config.pretraining_tp = 1
-
-    tokenizer = AutoTokenizer.from_pretrained(script_args.model_name, trust_remote_code=True)
-    tokenizer.pad_token = tokenizer.eos_token
 
     if script_args.lora_method == "lora":
         peft_config = LoraConfig(
