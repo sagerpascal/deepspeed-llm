@@ -29,6 +29,7 @@ from transformers import (
 
 from trl import SFTTrainer
 
+os.environ["WANDB_PROJECT"] = "sds_llama"
 
 # This example fine-tunes Llama v2 model on Guanace dataset
 # using QLoRA. At the end of the script we perform merging the weights
