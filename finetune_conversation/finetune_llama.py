@@ -82,7 +82,7 @@ class ScriptArguments:
         default="timdettmers/openassistant-guanaco",
         metadata={"help": "The preference dataset to use."},
     )
-    quant_method: Optional[int] = field(
+    use_quant: Optional[int] = field(
         default=1,
         metadata={"help": "Choose quantization method should quantisation be used"},
     )
