@@ -16,7 +16,6 @@ import os
 from dataclasses import dataclass, field
 from typing import Optional
 from peft import LoraConfig, AdaLoraConfig, LoHaConfig, LoKrConfig
-from awq import AutoAWQForCausalLM
 import torch
 from datasets import load_dataset
 from transformers import (
