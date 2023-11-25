@@ -54,16 +54,16 @@ class ScriptArguments:
 
     local_rank: Optional[int] = field(default=-1, metadata={"help": "Used for multi-gpu"})
 
-    per_device_train_batch_size: Optional[int] = field(default=1)
+    per_device_train_batch_size: Optional[int] = field(default=4)
     per_device_eval_batch_size: Optional[int] = field(default=1)
-    gradient_accumulation_steps: Optional[int] = field(default=1)
+    gradient_accumulation_steps: Optional[int] = field(default=4)
     learning_rate: Optional[float] = field(default=2e-4)
     max_grad_norm: Optional[float] = field(default=0.3)
     weight_decay: Optional[int] = field(default=0.001)
 
     lora_method: Optional[str] = field(
         default="lora",
-        metadata={"help": "Choose lora method, either lora or adalora,loha,lokr"},
+        metadata={"help": "Choose lora method, either lora or adalora, loha, lokr"},
     )
     # shared across lora flavours where applicable, use default settings otherwise
     lora_alpha: Optional[int] = field(default=16)
@@ -140,7 +140,7 @@ class ScriptArguments:
             "help": "Group sequences into batches with same length. Saves memory and speeds up training considerably."
         },
     )
-    save_steps: int = field(default=10, metadata={"help": "Save checkpoint every X updates steps."})
+    save_steps: int = field(default=10000, metadata={"help": "Save checkpoint every X updates steps."})
     logging_steps: int = field(default=10, metadata={"help": "Log every X updates steps."})
     merge_and_push: Optional[bool] = field(
         default=False,
@@ -275,7 +275,7 @@ trainer = SFTTrainer(
 trainer.train()
 
 if script_args.merge_and_push:
-    output_dir = os.path.join(script_args.output_dir, "final_checkpoints")
+    output_dir = os.path.join(script_args.output_dir, "final_checkpoints_"+script_args.lora_method+"_"+str(script_args.use_quant))
     trainer.model.save_pretrained(output_dir)
 
     # Free memory for merging weights
@@ -287,5 +287,5 @@ if script_args.merge_and_push:
     model = AutoPeftModelForCausalLM.from_pretrained(output_dir, device_map="auto", torch_dtype=torch.bfloat16)
     model = model.merge_and_unload()
 
-    output_merged_dir = os.path.join(script_args.output_dir, "final_merged_checkpoint")
+    output_merged_dir = os.path.join(script_args.output_dir, "final_checkpoints_"+script_args.lora_method+"_"+str(script_args.use_quant))
     model.save_pretrained(output_merged_dir, safe_serialization=True)
