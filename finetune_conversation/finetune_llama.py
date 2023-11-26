@@ -102,7 +102,6 @@ class ScriptArguments:
         default="nf4",
         metadata={"help": "Quantization type fp4 or nf4"},
     )
-    # AutoAWQ option start here
 
     num_train_epochs: Optional[int] = field(
         default=1,
