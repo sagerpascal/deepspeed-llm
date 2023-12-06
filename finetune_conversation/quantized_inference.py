@@ -15,7 +15,7 @@ from transformers import (
 
 from trl import SFTTrainer
 
-os.environ["WANDB_PROJECT"] = "sds_llama"
+os.environ["WANDB_PROJECT"] = "sds_llama_infrence"
 @dataclass
 class ScriptArguments:
     """

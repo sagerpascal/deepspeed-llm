@@ -29,8 +29,6 @@ from transformers import (
 
 from trl import SFTTrainer
 
-os.environ["WANDB_PROJECT"] = "sds_llama"
-
 # This example fine-tunes Llama v2 model on Guanace dataset
 # using QLoRA. At the end of the script we perform merging the weights
 # Use it by correctly passing --model_name argument when running the
@@ -131,7 +129,7 @@ class ScriptArguments:
         default="constant",
         metadata={"help": "Learning rate schedule. Constant a bit better than cosine, and has advantage for analysis"},
     )
-    max_steps: int = field(default=10000, metadata={"help": "How many optimizer update steps to take"})
+    max_steps: int = field(default=300, metadata={"help": "How many optimizer update steps to take"})
     warmup_ratio: float = field(default=0.03, metadata={"help": "Fraction of steps to do a warmup for"})
     group_by_length: bool = field(
         default=True,
@@ -150,14 +148,26 @@ class ScriptArguments:
         metadata={"help": "The output directory where the model predictions and checkpoints will be written."},
     )
 
+    wandb_project: str = field(
+        default="sds_llama",
+        metadata={"help": "wand project this run will log to"},
+    )
+
+    wandb_run: str = field(
+        default="run",
+        metadata={"help": "wandb name for this run"},
+    )
+
 
 parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
+os.environ["WANDB_PROJECT"] = script_args.wandb_project
+os.environ["WANDB_NAME"] = script_args.wandb_run
 
 def create_and_prepare_model(args):
 
-    tokenizer = AutoTokenizer.from_pretrained(script_args.model_name, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name, trust_remote_code=True)
     tokenizer.pad_token = tokenizer.eos_token
 
 
@@ -286,5 +296,5 @@ if script_args.merge_and_push:
     model = AutoPeftModelForCausalLM.from_pretrained(output_dir, device_map="auto", torch_dtype=torch.bfloat16)
     model = model.merge_and_unload()
 
-    output_merged_dir = os.path.join(script_args.output_dir, "final_checkpoints_"+script_args.lora_method+"_"+str(script_args.use_quant))
+    output_merged_dir = os.path.join(script_args.output_dir, "merged_final_checkpoints_"+script_args.lora_method+"_"+str(script_args.use_quant))
     model.save_pretrained(output_merged_dir, safe_serialization=True)
