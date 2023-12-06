@@ -68,7 +68,7 @@ class ScriptArguments:
     lora_dropout: Optional[float] = field(default=0.1)
     lora_r: Optional[int] = field(default=64)
 
-    max_seq_length: Optional[int] = field(default=512)
+    max_seq_length: Optional[int] = field(default=400)
     model_name: Optional[str] = field(
         default="meta-llama/Llama-2-7b-hf",
         metadata={
