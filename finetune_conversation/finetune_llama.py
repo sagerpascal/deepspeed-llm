@@ -208,6 +208,8 @@ def create_and_prepare_model(args):
 
     if script_args.lora_method == "lora":
         peft_config = LoraConfig(
+            target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj'],
+            # hardcoded for llamav2 needs to change for other model
             lora_alpha=script_args.lora_alpha,
             lora_dropout=script_args.lora_dropout,
             r=script_args.lora_r,
@@ -216,6 +218,8 @@ def create_and_prepare_model(args):
         )
     elif script_args.lora_method == "adalora":
         peft_config = AdaLoraConfig(
+            target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj'],
+            # hardcoded for llamav2 needs to change for other model
             lora_alpha=script_args.lora_alpha,
             lora_dropout=script_args.lora_dropout,
             target_r=script_args.lora_r,
@@ -225,6 +229,7 @@ def create_and_prepare_model(args):
 
     elif script_args.lora_method == "loha":
         peft_config = LoHaConfig(
+            target_modules=['q_proj','k_proj','v_proj','o_proj'],  # hardcoded for llamav2 needs to change for other model
             alpha=script_args.lora_alpha,
             module_dropout=script_args.lora_dropout,
             r=script_args.lora_r,
@@ -233,6 +238,7 @@ def create_and_prepare_model(args):
 
     elif script_args.lora_method == "lokr":
         peft_config = LoKrConfig(
+            target_modules = ['q_proj','k_proj','v_proj','o_proj'], # hardcoded for llamav2 needs to change for other model
             alpha=script_args.lora_alpha,
             module_dropout=script_args.lora_dropout,
             r=script_args.lora_r,
