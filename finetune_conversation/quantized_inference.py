@@ -1,7 +1,6 @@
 import os
 from dataclasses import dataclass, field
 from typing import Optional
-from peft import LoraConfig, AdaLoraConfig, LoHaConfig, LoKrConfig
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -12,8 +11,8 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
 )
+from awq import AutoAWQForCausalLM
 
-from trl import SFTTrainer
 
 os.environ["WANDB_PROJECT"] = "sds_llama_infrence"
 @dataclass
@@ -23,7 +22,7 @@ class ScriptArguments:
     """
 
     quant_method: Optional[str] = field(
-        default="no",
+        default="awq",
         metadata={"help": "Choose which quantization method: no, bnb, awq, gptq"},
     )
     # BNB options start here
@@ -84,16 +83,34 @@ elif args.quant_method == 'awq':
     # TODO use code snippets from hugginface hub
     ### AWQ
     ### https://huggingface.co/TheBloke/vicuna-7B-v1.5-AWQ
-    raise("not implemented")
+    model_name_or_path = "TheBloke/vicuna-7B-v1.5-AWQ"
+    model = AutoAWQForCausalLM.from_quantized(model_name_or_path, fuse_layers=True,
+                                              trust_remote_code=False, safetensors=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=False)
+
 elif args.quant_method == 'gptq':
     # TODO use code snippets from hugginface hub
     ### gptq
     ### https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GPTQ
-    raise ("not implemented")
+    model_name_or_path = "TheBloke/Wizard-Vicuna-7B-Uncensored-GPTQ"
+    # To use a different branch, change revision
+    # For example: revision="main"
+    model = AutoModelForCausalLM.from_pretrained(model_name_or_path,
+                                                 device_map="auto",
+                                                 trust_remote_code=True,
+                                                 revision="main")
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=True)
+
+
 else:
     raise("unknown quantization method")
 
 
 
 # TODO inference benchmark here
+text = ("Why is it good to obtain a PhD?")
+inputs = tokenizer(text, return_tensors="pt").to(0)
 
+out = model.generate(**inputs, max_new_tokens=50)
+print(tokenizer.decode(out[0], skip_special_tokens=True))
