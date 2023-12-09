@@ -8,6 +8,7 @@ import json
 import os
 import random
 import time
+import wandb
 
 import shortuuid
 import torch
@@ -292,6 +293,13 @@ if __name__ == "__main__":
 
     print(f"Output to {answer_file}")
 
+    run = wandb.init(
+        project="mt-bench",
+        notes="Generate answers on the MT-Bench dataset",
+        config=args,
+        group="gen_model_answers",
+    )
+
     run_eval(
         model_id=args.model_id,
         question_file=question_file,
@@ -305,3 +313,8 @@ if __name__ == "__main__":
     )
 
     reorg_answer_file(answer_file)
+
+    artifact = wandb.Artifact(name=f"{args.model_id}_answers", type="jsonl")
+    artifact.add_file(local_path=answer_file)
+    run.log_artifact(artifact)
+    wandb.finish()

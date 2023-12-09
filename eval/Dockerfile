@@ -24,6 +24,7 @@ RUN pip install -e ".[model_worker,llm_judge]"
 RUN pip install -e .
 
 # The Actual Code is mounted via -v option
+RUN pip install auto-gptq autoawq optimum bitsandbytes wandb
 WORKDIR /FastChat
 
 
