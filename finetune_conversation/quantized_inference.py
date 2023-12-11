@@ -15,7 +15,7 @@ from awq import AutoAWQForCausalLM
 
 os.environ["WANDB_PROJECT"] = "sds_llama_infrence"
 
-def load_model(model_id: str=None):
+def load_model(model_id: str=None, load_only_tokenizer: bool=False):
 
     @dataclass
     class ScriptArguments:
@@ -88,10 +88,11 @@ def load_model(model_id: str=None):
 
         device_map = {"": 0}
 
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            device_map=device_map,
-        )
+        if not load_only_tokenizer:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                device_map=device_map,
+            )
 
     elif args.quant_method == 'bnb':
         model_name = "lmsys/vicuna-7b-v1.3"
@@ -108,19 +109,22 @@ def load_model(model_id: str=None):
             bnb_4bit_use_double_quant=args.bnb_use_nested_quant,
         )
 
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            quantization_config=bnb_config,
-            device_map=device_map,
-            )
+        if not load_only_tokenizer:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                quantization_config=bnb_config,
+                device_map=device_map,
+                )
 
     elif args.quant_method == 'awq':
         # TODO use code snippets from hugginface hub
         ### AWQ
         ### https://huggingface.co/TheBloke/vicuna-7B-v1.5-AWQ
         model_name_or_path = "TheBloke/vicuna-7B-v1.5-AWQ"
-        model = AutoAWQForCausalLM.from_quantized(model_name_or_path, fuse_layers=True,
-                                                  trust_remote_code=False, safetensors=True)
+
+        if not load_only_tokenizer:
+            model = AutoAWQForCausalLM.from_quantized(model_name_or_path, fuse_layers=True,
+                                                      trust_remote_code=False, safetensors=True)
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=False)
 
     elif args.quant_method == 'gptq':
@@ -130,15 +134,20 @@ def load_model(model_id: str=None):
         model_name_or_path = "TheBloke/Wizard-Vicuna-7B-Uncensored-GPTQ"
         # To use a different branch, change revision
         # For example: revision="main"
-        model = AutoModelForCausalLM.from_pretrained(model_name_or_path,
-                                                     device_map="auto",
-                                                     trust_remote_code=True,
-                                                     revision="main")
+
+        if not load_only_tokenizer:
+            model = AutoModelForCausalLM.from_pretrained(model_name_or_path,
+                                                         device_map="auto",
+                                                         trust_remote_code=True,
+                                                         revision="main")
 
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=True)
 
     else:
         raise("unknown quantization method")
+
+    if load_only_tokenizer:
+        return tokenizer
 
     return model, tokenizer
 
