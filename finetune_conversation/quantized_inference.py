@@ -159,5 +159,5 @@ if __name__ == '__main__':
     text = ("Why is it good to obtain a PhD?")
     inputs = tokenizer(text, return_tensors="pt").to(0)
 
-    out = model.generate(**inputs, max_new_tokens=50)
+    out = model.generate(**inputs, max_new_tokens=100)
     print(tokenizer.decode(out[0], skip_special_tokens=True))

@@ -31,7 +31,6 @@ args = parser.parse_args_into_dataclasses()[0]
 # )
 
 from peft import AutoPeftModelForCausalLM
-print("sadfsafdd")
 
 model = AutoPeftModelForCausalLM.from_pretrained(args.in_adapter, device_map="auto", torch_dtype=torch.bfloat16)
 model = model.merge_and_unload()
