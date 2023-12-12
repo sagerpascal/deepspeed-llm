@@ -37,7 +37,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
         parser = HfArgumentParser(ScriptArguments)
         args = parser.parse_args_into_dataclasses()[0]
 
-        prefix = '/cluster/home/tugg/deepspeed-llm/finetune_conversation/results/finalized'
+        prefix = '/cluster/data/tugg/finalized'
         if args.lora_method == 'lora':
             model_path = os.path.join(prefix, 'merged_final_checkpoints_lora_0')
         elif args.lora_method == 'adalora':
