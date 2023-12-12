@@ -4,13 +4,10 @@ from typing import Optional
 import torch
 from transformers import (
     AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
     HfArgumentParser,
-    AutoTokenizer,
-    TrainingArguments,
+    AutoTokenizer
 )
-from awq import AutoAWQForCausalLM
+
 
 
 os.environ["WANDB_PROJECT"] = "sds_llama_infrence"
