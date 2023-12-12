@@ -75,7 +75,7 @@ if __name__ == '__main__':
     model, tokenizer = load_model()
 
     # TODO inference benchmark here
-    text = ("Why is it good to obtain a PhD?")
+    text = ("### Human: Can you explain to me why it makes sense to optain a PhD?")
     inputs = tokenizer(text, return_tensors="pt").to(0)
 
     out = model.generate(**inputs, max_new_tokens=100)
