@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import wandb
 
-from finetune_conversation.quantized_inference import load_model
+from eval.gen_model_answers import load_model
 
 runs = {
     'vicuna-7b-v1.5-awq-activate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/7id0iq73',

@@ -29,9 +29,13 @@ temperature_config = {
     "arena-hard-200": 0.0,
 }
 
-def load_model(model_id: str):
-    from finetune_conversation.quantized_inference import load_model
-    return load_model(model_id)
+def load_model(model_id: str, load_only_tokenizer: bool = False):
+    if model_id.startswith("/cluster/data/tugg"):
+        from finetune_conversation.inference_finetuned import load_model
+        return load_model(model_id, load_only_tokenizer)
+    else:
+        from finetune_conversation.quantized_inference import load_model
+        return load_model(model_id, load_only_tokenizer)
 
 
 def get_conversation_template():
