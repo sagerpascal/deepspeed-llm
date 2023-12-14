@@ -27,9 +27,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
 
 
     if model_id is not None:
-        # Model id is expected to point to a stored model in /cluster/data/tugg
-
-        assert model_id[0:16] == '/cluster/data/tugg'
+        assert model_id[:28] == '/cluster/data/tugg/finalized', "Model id is expected to point to a stored model in /cluster/data/tugg"
         model_path = model_id
 
     else:
