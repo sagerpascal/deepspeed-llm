@@ -318,7 +318,7 @@ if __name__ == "__main__":
 
     reorg_answer_file(answer_file)
 
-    artifact = wandb.Artifact(name=f"{args.model_id}_answers", type="jsonl")
+    artifact = wandb.Artifact(name=f"{str(args.model_id).split('/')[-1]}_answers", type="jsonl")
     artifact.add_file(local_path=answer_file)
     run.log_artifact(artifact)
     wandb.finish()
