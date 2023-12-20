@@ -88,7 +88,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
             model_name = "meta-llama/Llama-2-7b-hf"
 
         else:
-            model_name = "lmsys/vicuna-7b-v1.3"
+            model_name = "meta-llama/Llama-2-7b-chat-hf"
 
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         tokenizer.pad_token = tokenizer.eos_token
@@ -102,7 +102,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
             )
 
     elif args.quant_method == 'bnb':
-        model_name = "lmsys/vicuna-7b-v1.3"
+        model_name = "meta-llama/Llama-2-7b-chat-hf"
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -127,7 +127,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
         # TODO use code snippets from hugginface hub
         ### AWQ
         ### https://huggingface.co/TheBloke/vicuna-7B-v1.5-AWQ
-        model_name_or_path = "TheBloke/vicuna-7B-v1.5-AWQ"
+        model_name_or_path = "TheBloke/Llama-2-7B-Chat-AWQ"
 
         if not load_only_tokenizer:
             model = AutoAWQForCausalLM.from_quantized(model_name_or_path, fuse_layers=True,
@@ -138,7 +138,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
         # TODO use code snippets from hugginface hub
         ### gptq
         ### https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GPTQ
-        model_name_or_path = "TheBloke/Wizard-Vicuna-7B-Uncensored-GPTQ"
+        model_name_or_path = "TheBloke/Llama-2-7B-Chat-GPTQ"
         # To use a different branch, change revision
         # For example: revision="main"
 
@@ -181,7 +181,10 @@ if __name__ == '__main__':
                        ]
     for eval_text in qual_eval_texts:
         # TODO inference benchmark here
-        eval_text = "A chat between a human and an assistant. \n ### Human: \n "+eval_text + ""
+
+        eval_text = "[INST] <<SYS>> \n You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct."+ \
+        " If you don't know the answer to a question, please don't share false information. \n <</SYS>> "+eval_text+"[/INST]"
+        #eval_text = "A chat between a human and an assistant. \n ### Human: \n "+eval_text + ""
         text = (eval_text)
         inputs = tokenizer(text, return_tensors="pt").to(0)
 
