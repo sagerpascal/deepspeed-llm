@@ -10,7 +10,7 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
 )
-#from awq import AutoAWQForCausalLM
+from awq import AutoAWQForCausalLM
 
 
 os.environ["WANDB_PROJECT"] = "sds_llama_infrence"
