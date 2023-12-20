@@ -6,7 +6,10 @@ import wandb
 
 from eval.gen_model_answers import load_model
 
+GPU_MEMORY_GB = 40
+
 runs = {
+    'Llama-2-7b-no-deactivate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/15hpaf0g',
     'vicuna-7b-v1.5-awq-activate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/7id0iq73',
     'vicuna-7b-v1.5-no-deactivate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/nb7hi44o',
     'vicuna-7b-v1.5-gptq-deactivate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/pbbmonlf',
@@ -62,6 +65,10 @@ def calculate_statistics(df: pd.DataFrame, answers, tokenizer):
         'Max. GPU Memory [%]': max_gpu_memory,
         'Avg. GPU Memory Allocated [%]': avg_gpu_memory_allocated,
         'Max. GPU Memory Allocated [%]': max_gpu_memory_allocated,
+        'Avg. GPU Memory [GB]': avg_gpu_memory / 100 * GPU_MEMORY_GB,
+        'Max. GPU Memory [GB]': max_gpu_memory / 100 * GPU_MEMORY_GB,
+        'Avg. GPU Memory Allocated [GB]': avg_gpu_memory_allocated / 100 * GPU_MEMORY_GB,
+        'Max. GPU Memory Allocated [GB]': max_gpu_memory_allocated / 100 * GPU_MEMORY_GB,
         'GPU Power Consumption [Wh]': gpu_power_consumption_Wh,
         'Tokens/s': get_processed_tokens_per_s(df, answers, tokenizer)
     }

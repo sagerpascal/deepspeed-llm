@@ -1,0 +1,41 @@
+model,category,score,winrate,wtrate,wtrate_sage,baseline
+Vicuna-7B BnB,Writing,4.9,,,,
+Vicuna-7B BnB,Roleplay,4.15,,,,
+Vicuna-7B BnB,Reasoning,2.65,,,,
+Vicuna-7B BnB,Math,1.55,,,,
+Vicuna-7B BnB,Coding,1.45,,,,
+Vicuna-7B BnB,Extraction,3.75,,,,
+Vicuna-7B BnB,STEM,6.25,,,,
+Vicuna-7B BnB,Humanities,8.925,,,,
+Vicuna-7B GPTQ,Writing,5.575,,,,
+Vicuna-7B GPTQ,Roleplay,5.3,,,,
+Vicuna-7B GPTQ,Reasoning,3.6,,,,
+Vicuna-7B GPTQ,Math,1.7,,,,
+Vicuna-7B GPTQ,Coding,1.45,,,,
+Vicuna-7B GPTQ,Extraction,3.7,,,,
+Vicuna-7B GPTQ,STEM,6.525,,,,
+Vicuna-7B GPTQ,Humanities,7.125,,,,
+Vicuna-7B AWQ,Writing,7.814814814814815,0.55,0.75,0.65,Vicuna-7B
+Vicuna-7B AWQ,Roleplay,7.428571428571429,0.7,0.8,0.75,Vicuna-7B
+Vicuna-7B AWQ,Reasoning,4.714285714285714,0.4,0.95,0.675,Vicuna-7B
+Vicuna-7B AWQ,Math,1.2916666666666667,0.0,0.85,0.425,Vicuna-7B
+Vicuna-7B AWQ,Coding,2.75,0.15,0.9,0.525,Vicuna-7B
+Vicuna-7B AWQ,Extraction,6.130434782608695,0.35,0.75,0.55,Vicuna-7B
+Vicuna-7B AWQ,STEM,7.434782608695652,0.65,0.85,0.75,Vicuna-7B
+Vicuna-7B AWQ,Humanities,9.565217391304348,0.65,0.85,0.75,Vicuna-7B
+Vicuna-7B,Writing,6.0,,,,
+Vicuna-7B,Roleplay,5.1,,,,
+Vicuna-7B,Reasoning,2.1,,,,
+Vicuna-7B,Math,2.4,,,,
+Vicuna-7B,Coding,1.4,,,,
+Vicuna-7B,Extraction,5.7,,,,
+Vicuna-7B,STEM,5.55,,,,
+Vicuna-7B,Humanities,7.85,,,,
+GPT-4,Writing,9.65,0.9,0.95,0.925,gpt-3.5-turbo
+GPT-4,Roleplay,8.9,0.6,0.85,0.725,gpt-3.5-turbo
+GPT-4,Reasoning,9.0,0.8,0.95,0.875,gpt-3.5-turbo
+GPT-4,Math,6.8,0.65,1.0,0.825,gpt-3.5-turbo
+GPT-4,Coding,8.55,0.6,1.0,0.8,gpt-3.5-turbo
+GPT-4,Extraction,9.375,0.25,0.9,0.575,gpt-3.5-turbo
+GPT-4,STEM,9.7,0.85,1.0,0.925,gpt-3.5-turbo
+GPT-4,Humanities,9.95,0.9,1.0,0.95,gpt-3.5-turbo

@@ -38,15 +38,26 @@ def load_model(model_id: str, load_only_tokenizer: bool = False):
         return load_model(model_id, load_only_tokenizer)
 
 
-def get_conversation_template():
-    return Conversation(
-        name="stable-vicuna",
-        system_message="### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here to chat!\n",
-        roles=("### Human", "### Assistant"),
-        sep_style=SeparatorStyle.ADD_COLON_TWO,
-        sep="\n",
-        sep2="\n\n",
+def get_conversation_template(is_llama: bool = False):
+    if is_llama:
+        return Conversation(
+        name="llama-2",
+        system_template="[INST] <<SYS>>\n{system_message}\n<</SYS>>\n\n",
+        roles=("[INST]", "[/INST]"),
+        sep_style=SeparatorStyle.LLAMA2,
+        sep=" ",
+        sep2=" </s><s>",
     ).copy()
+
+    else:
+        return Conversation(
+            name="stable-vicuna",
+            system_message="### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here to chat!\n",
+            roles=("### Human", "### Assistant"),
+            sep_style=SeparatorStyle.ADD_COLON_TWO,
+            sep="\n",
+            sep2="\n\n",
+        ).copy()
 
 def str_to_torch_dtype(dtype: str):
     if dtype is None:
@@ -135,7 +146,7 @@ def get_model_answers(
         choices = []
         for i in range(num_choices):
             torch.manual_seed(i)
-            conv = get_conversation_template()
+            conv = get_conversation_template(is_llama=model_id.startswith("Llama-2-7b-no"))
             turns = []
             for j in range(len(question["turns"])):
                 qs = question["turns"][j]
