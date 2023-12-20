@@ -10,7 +10,7 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
 )
-from awq import AutoAWQForCausalLM
+#from awq import AutoAWQForCausalLM
 
 
 os.environ["WANDB_PROJECT"] = "sds_llama_infrence"
@@ -162,15 +162,23 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
 if __name__ == '__main__':
     model, tokenizer = load_model()
 
-    qual_eval_texts = ["### Human: Can you recommend me a recipe for chocolate chip cookies?### Assistant:",
-                       "### Human: What is photosynthesis?### Assistant:",
-                       "### Human: Where can we get a good lunch in Zürich on a small budget?### Assistant:",
-                       "### Human: Explain datascience to me.### Assistant:",
-                       "### Human: Since when is Paris the capital of Germany?### Assistant:",
-                       "### Human: Can you add 9123 to 1234?### Assistant:",
-                       "### Human: When was the French Revolution?### Assistant:"
-                       ]
+    # qual_eval_texts = ["### Human: Can you recommend me a recipe for chocolate chip cookies?### Assistant:",
+    #                    "### Human: What is photosynthesis?### Assistant:",
+    #                    "### Human: Where can we get a good lunch in Zürich on a small budget?### Assistant:",
+    #                    "### Human: Explain datascience to me.### Assistant:",
+    #                    "### Human: Since when is Paris the capital of Germany?### Assistant:",
+    #                    "### Human: Can you add 9123 to 1234?### Assistant:",
+    #                    "### Human: When was the French Revolution?### Assistant:"
+    #                    ]
 
+    qual_eval_texts = ["Can you recommend me a recipe for chocolate chip cookies?",
+                       "What is photosynthesis?",
+                       "Where can we get a good lunch in Zürich on a small budget?",
+                       "Explain datascience to me.",
+                       "Since when is Paris the capital of Germany?",
+                       "Can you add 9123 to 1234?",
+                       "When was the French Revolution?"
+                       ]
     for eval_text in qual_eval_texts:
         # TODO inference benchmark here
         text = (eval_text)

@@ -72,6 +72,15 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
 if __name__ == '__main__':
     model, tokenizer = load_model()
 
+    qual_eval_texts = ["### Human: Can you recommend me a recipe for chocolate chip cookies?### Assistant:",
+                       "### Human: What is photosynthesis?### Assistant:",
+                       "### Human: Where can we get a good lunch in Zürich on a small budget?### Assistant:",
+                       "### Human: Explain datascience to me.### Assistant:",
+                       "### Human: Since when is Paris the capital of Germany?### Assistant:",
+                       "### Human: Can you add 9123 to 1234?### Assistant:",
+                       "### Human: When was the French Revolution?### Assistant:"
+                       ]
+
     # TODO inference benchmark here
     text = ("### Human: Can you explain to me why it makes sense to optain a PhD?")
     inputs = tokenizer(text, return_tensors="pt").to(0)
