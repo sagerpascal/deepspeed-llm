@@ -29,9 +29,13 @@ temperature_config = {
     "arena-hard-200": 0.0,
 }
 
-def load_model(model_id: str):
-    from finetune_conversation.quantized_inference import load_model
-    return load_model(model_id)
+def load_model(model_id: str, load_only_tokenizer: bool = False):
+    if model_id.startswith("/cluster/data/tugg"):
+        from finetune_conversation.inference_finetuned import load_model
+        return load_model(model_id, load_only_tokenizer)
+    else:
+        from finetune_conversation.quantized_inference import load_model
+        return load_model(model_id, load_only_tokenizer)
 
 
 def get_conversation_template():
@@ -314,7 +318,7 @@ if __name__ == "__main__":
 
     reorg_answer_file(answer_file)
 
-    artifact = wandb.Artifact(name=f"{args.model_id}_answers", type="jsonl")
+    artifact = wandb.Artifact(name=f"{str(args.model_id).split('/')[-1]}_answers", type="jsonl")
     artifact.add_file(local_path=answer_file)
     run.log_artifact(artifact)
     wandb.finish()

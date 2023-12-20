@@ -48,25 +48,27 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
     if model_id is not None:
         # Model id is expected to follow this pattern:
         # vicuna-7b-v1.5-<quant>-<4bit>-<nested>-<dtype>-<quant_type>
+        # Llama-2-7b-<quant>-<4bit>-<nested>-<dtype>-<quant_type>
+
 
         model_config = model_id.split("-")
-        model_type = model_config[0]
-        model_size = model_config[1]
-        model_version = model_config[2]
+        model_type = "-".join(model_config[:3])
         quant_method = model_config[3]
         act_4bit = model_config[4]
         act_quant = model_config[5]
         compute_dtype = model_config[6]
         quant_type = model_config[7]
 
-        assert model_type == "vicuna", "Only vicuna models are supported"
-        assert model_size in ["7b"], "Only 7b models are supported"
-        assert model_version in ["v1.5"], "Only v1.5 models are supported"
-        assert quant_method in ["no", "bnb", "awq", "gptq"], "Only no, bnb, awq, gptq quantization methods are supported"
-        assert act_4bit in ["activate_4bit", "deactivate_4bit"], "Only activate_4bit and deactivate_4bit are supported"
-        assert act_quant in ["activate_nested", "deactivate_nested"], "Only activate_nested and deactivate_nested are supported"
-        assert compute_dtype in ["float16", "bfloat16"], "Only float16 and bfloat16 are supported"
-        assert quant_type in ["nf4", "fp4"], "Only nf4 and fp4 are supported"
+        assert model_type.lower() in ["llama-2-7b", "vicuna-7b-v1.5"], "Only vicuna-7b or llama-2-7b models are supported"
+        if model_type.lower() == "llama-2-7b":
+            assert quant_method == "no", "Quantization method is not supported for llama models"
+
+        else:
+            assert quant_method in ["no", "bnb", "awq", "gptq"], "Only no, bnb, awq, gptq quantization methods are supported"
+            assert act_4bit in ["activate_4bit", "deactivate_4bit"], "Only activate_4bit and deactivate_4bit are supported"
+            assert act_quant in ["activate_nested", "deactivate_nested"], "Only activate_nested and deactivate_nested are supported"
+            assert compute_dtype in ["float16", "bfloat16"], "Only float16 and bfloat16 are supported"
+            assert quant_type in ["nf4", "fp4"], "Only nf4 and fp4 are supported"
 
         args = ScriptArguments(
             quant_method=quant_method,
@@ -82,7 +84,12 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
         args = parser.parse_args_into_dataclasses()[0]
 
     if args.quant_method == 'no':
-        model_name = "lmsys/vicuna-7b-v1.3"
+        if model_type.lower() == "llama-2-7b":
+            model_name = "meta-llama/Llama-2-7b-hf"
+
+        else:
+            model_name = "lmsys/vicuna-7b-v1.3"
+
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         tokenizer.pad_token = tokenizer.eos_token
 
