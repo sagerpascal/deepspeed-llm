@@ -79,7 +79,7 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
         )
 
     else:
-
+        model_type = ""
         parser = HfArgumentParser(ScriptArguments)
         args = parser.parse_args_into_dataclasses()[0]
 
