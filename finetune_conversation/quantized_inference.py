@@ -181,6 +181,7 @@ if __name__ == '__main__':
                        ]
     for eval_text in qual_eval_texts:
         # TODO inference benchmark here
+        eval_text = "A chat between a human and an assistant. \n ### Human: \n "+eval_text + ""
         text = (eval_text)
         inputs = tokenizer(text, return_tensors="pt").to(0)
 
