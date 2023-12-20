@@ -171,9 +171,10 @@ if __name__ == '__main__':
                        "### Human: When was the French Revolution?### Assistant:"
                        ]
 
-    # TODO inference benchmark here
-    text = ("Why is it good to obtain a PhD?")
-    inputs = tokenizer(text, return_tensors="pt").to(0)
+    for eval_text in qual_eval_texts:
+        # TODO inference benchmark here
+        text = (eval_text)
+        inputs = tokenizer(text, return_tensors="pt").to(0)
 
-    out = model.generate(**inputs, max_new_tokens=250)
-    print(tokenizer.decode(out[0], skip_special_tokens=True))
+        out = model.generate(**inputs, max_new_tokens=250)
+        print(tokenizer.decode(out[0], skip_special_tokens=True))
