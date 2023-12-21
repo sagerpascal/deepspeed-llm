@@ -8,12 +8,12 @@ import json
 import os
 import random
 import time
-import wandb
+from typing import Optional
 
 import shortuuid
 import torch
+import wandb
 from tqdm import tqdm
-from typing import Optional
 
 from eval.conversation import Conversation, SeparatorStyle
 
@@ -29,6 +29,7 @@ temperature_config = {
     "arena-hard-200": 0.0,
 }
 
+
 def load_model(model_id: str, load_only_tokenizer: bool = False):
     if model_id.startswith("/cluster/data/tugg"):
         from finetune_conversation.inference_finetuned import load_model
@@ -41,23 +42,31 @@ def load_model(model_id: str, load_only_tokenizer: bool = False):
 def get_conversation_template(is_llama: bool = False):
     if is_llama:
         return Conversation(
-        name="llama-2",
-        system_template="[INST] <<SYS>>\n{system_message}\n<</SYS>>\n\n",
-        roles=("[INST]", "[/INST]"),
-        sep_style=SeparatorStyle.LLAMA2,
-        sep=" ",
-        sep2=" </s><s>",
-    ).copy()
+            name="llama-2",
+            system_template="[INST] <<SYS>>\n{system_message}\n<</SYS>>\n\n",
+            system_message="You are a helpful, respectful and honest assistant. Always answer as helpfully as "
+                           "possible, while being safe.  Your answers should not include any harmful, unethical, "
+                           "racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses "
+                           "are socially unbiased and positive in nature. If a question does not make any sense, "
+                           "or is not factually coherent, explain why instead of answering something not correct. If "
+                           "you don't know the answer to a question, please don't share false information.",
+            roles=("[INST]", "[/INST]"),
+            sep_style=SeparatorStyle.LLAMA2,
+            sep=" ",
+            sep2=" </s><s>",
+        ).copy()
 
     else:
         return Conversation(
             name="stable-vicuna",
-            system_message="### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here to chat!\n",
+            system_message="### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here "
+                           "to chat!\n",
             roles=("### Human", "### Assistant"),
             sep_style=SeparatorStyle.ADD_COLON_TWO,
             sep="\n",
             sep2="\n\n",
         ).copy()
+
 
 def str_to_torch_dtype(dtype: str):
     if dtype is None:
@@ -71,6 +80,7 @@ def str_to_torch_dtype(dtype: str):
     else:
         raise ValueError(f"Unrecognized dtype: {dtype}")
 
+
 def load_questions(question_file: str, begin: Optional[int], end: Optional[int]):
     """Load questions from a file."""
     questions = []
@@ -83,15 +93,15 @@ def load_questions(question_file: str, begin: Optional[int], end: Optional[int])
 
 
 def run_eval(
-    model_id,
-    question_file,
-    question_begin,
-    question_end,
-    answer_file,
-    max_new_token,
-    num_choices,
-    num_gpus_per_model,
-    num_gpus_total,
+        model_id,
+        question_file,
+        question_begin,
+        question_end,
+        answer_file,
+        max_new_token,
+        num_choices,
+        num_gpus_per_model,
+        num_gpus_total,
 ):
     questions = load_questions(question_file, question_begin, question_end)
     # random shuffle the questions to balance the loading
@@ -114,7 +124,7 @@ def run_eval(
         ans_handles.append(
             get_answers_func(
                 model_id,
-                questions[i : i + chunk_size],
+                questions[i: i + chunk_size],
                 answer_file,
                 max_new_token,
                 num_choices,
@@ -127,11 +137,11 @@ def run_eval(
 
 @torch.inference_mode()
 def get_model_answers(
-    model_id,
-    questions,
-    answer_file,
-    max_new_token,
-    num_choices,
+        model_id,
+        questions,
+        answer_file,
+        max_new_token,
+        num_choices,
 ):
     model, tokenizer = load_model(
         model_id,
@@ -146,7 +156,7 @@ def get_model_answers(
         choices = []
         for i in range(num_choices):
             torch.manual_seed(i)
-            conv = get_conversation_template(is_llama=model_id.startswith("Llama-2-7b-no"))
+            conv = get_conversation_template(is_llama="llama" in model_id.lower())
             turns = []
             for j in range(len(question["turns"])):
                 qs = question["turns"][j]
@@ -176,7 +186,7 @@ def get_model_answers(
                     # else:
                     #     output_ids = output_ids[0][len(input_ids[0]) :]
 
-                    output_ids = output_ids[0][len(input_ids[0]) :]
+                    output_ids = output_ids[0][len(input_ids[0]):]
 
                     # be consistent with the template's stop_token_ids
                     if conv.stop_token_ids:

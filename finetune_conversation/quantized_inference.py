@@ -52,23 +52,19 @@ def load_model(model_id: str=None, load_only_tokenizer: bool=False):
 
 
         model_config = model_id.split("-")
-        model_type = "-".join(model_config[:3])
-        quant_method = model_config[3]
-        act_4bit = model_config[4]
-        act_quant = model_config[5]
-        compute_dtype = model_config[6]
-        quant_type = model_config[7]
+        model_type = "-".join(model_config[:-5])
+        quant_method = model_config[-5]
+        act_4bit = model_config[-4]
+        act_quant = model_config[-3]
+        compute_dtype = model_config[-2]
+        quant_type = model_config[-1]
 
-        assert model_type.lower() in ["llama-2-7b", "vicuna-7b-v1.5"], "Only vicuna-7b or llama-2-7b models are supported"
-        if model_type.lower() == "llama-2-7b":
-            assert quant_method == "no", "Quantization method is not supported for llama models"
-
-        else:
-            assert quant_method in ["no", "bnb", "awq", "gptq"], "Only no, bnb, awq, gptq quantization methods are supported"
-            assert act_4bit in ["activate_4bit", "deactivate_4bit"], "Only activate_4bit and deactivate_4bit are supported"
-            assert act_quant in ["activate_nested", "deactivate_nested"], "Only activate_nested and deactivate_nested are supported"
-            assert compute_dtype in ["float16", "bfloat16"], "Only float16 and bfloat16 are supported"
-            assert quant_type in ["nf4", "fp4"], "Only nf4 and fp4 are supported"
+        assert model_type.lower() in ["llama-2-7b", "llama-2-7b-chat"], "Only llama-2-7b models are supported"
+        assert quant_method in ["no", "bnb", "awq", "gptq"], "Only no, bnb, awq, gptq quantization methods are supported"
+        assert act_4bit in ["activate_4bit", "deactivate_4bit"], "Only activate_4bit and deactivate_4bit are supported"
+        assert act_quant in ["activate_nested", "deactivate_nested"], "Only activate_nested and deactivate_nested are supported"
+        assert compute_dtype in ["float16", "bfloat16"], "Only float16 and bfloat16 are supported"
+        assert quant_type in ["nf4", "fp4"], "Only nf4 and fp4 are supported"
 
         args = ScriptArguments(
             quant_method=quant_method,
