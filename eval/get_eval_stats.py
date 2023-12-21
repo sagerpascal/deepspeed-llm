@@ -6,9 +6,8 @@ import wandb
 
 from eval.gen_model_answers import load_model
 
-GPU_MEMORY_GB = 40
 
-runs = {
+runs_a100 = {
     'Llama-2-7b-no-deactivate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/01v5xef5',
     'Llama-2-7b-chat-no-deactivate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/73qn3kyp',
     'Llama-2-7b-chat-bnb-activate_4bit-deactivate_nested-float16-fp4': 'sagerpascal/mt-bench/w0xb5gcj',
@@ -33,6 +32,10 @@ runs = {
     'tugg-merged_final_checkpoints_lora_1': 'sagerpascal/mt-bench/khnf5usr',
 }
 
+runs_t4 = {
+
+}
+
 
 def import_wandb_data(run_path, model_id):
     api = wandb.Api()
@@ -45,18 +48,21 @@ def import_wandb_data(run_path, model_id):
 
 def extract_relevant_columns(df: pd.DataFrame):
     df = df[['_runtime', '_timestamp', 'system.gpu.0.powerWatts', 'system.gpu.0.memory', 'system.gpu.0.memoryAllocated',
-             'system.gpu.0.gpu']]
+             'system.gpu.0.gpu', 'system.gpu.0.powerPercent']]
     return df
 
 
 def get_processed_tokens_per_s(df: pd.DataFrame, answers, tokenizer):
+    processing_time_df = df[df['system.gpu.0.powerPercent'] > 5]
+    processing_time = processing_time_df['_runtime'].max() - processing_time_df['_runtime'].min()
+
     responses = [dict(a[1][0]) for a in answers['choices'].items()]
     responses = [(r['turns'][0], r['turns'][1]) for r in responses]
     n_gen_tokens = [len(tokenizer(r[0])['input_ids']) + len(tokenizer(r[1])['input_ids']) for r in responses]
-    return sum(n_gen_tokens) / df['_runtime'].max()
+    return sum(n_gen_tokens) / processing_time
 
 
-def calculate_statistics(df: pd.DataFrame, answers, tokenizer):
+def calculate_statistics(df: pd.DataFrame, answers, tokenizer, gpu_memory_gb):
     runtime = df['_runtime'].max()
     avg_gpu_memory = df['system.gpu.0.memory'].mean()
     max_gpu_memory = df['system.gpu.0.memory'].max()
@@ -70,10 +76,10 @@ def calculate_statistics(df: pd.DataFrame, answers, tokenizer):
         'Max. GPU Memory [%]': max_gpu_memory,
         'Avg. GPU Memory Allocated [%]': avg_gpu_memory_allocated,
         'Max. GPU Memory Allocated [%]': max_gpu_memory_allocated,
-        'Avg. GPU Memory [GB]': avg_gpu_memory / 100 * GPU_MEMORY_GB,
-        'Max. GPU Memory [GB]': max_gpu_memory / 100 * GPU_MEMORY_GB,
-        'Avg. GPU Memory Allocated [GB]': avg_gpu_memory_allocated / 100 * GPU_MEMORY_GB,
-        'Max. GPU Memory Allocated [GB]': max_gpu_memory_allocated / 100 * GPU_MEMORY_GB,
+        'Avg. GPU Memory [GB]': avg_gpu_memory / 100 * gpu_memory_gb,
+        'Max. GPU Memory [GB]': max_gpu_memory / 100 * gpu_memory_gb,
+        'Avg. GPU Memory Allocated [GB]': avg_gpu_memory_allocated / 100 * gpu_memory_gb,
+        'Max. GPU Memory Allocated [GB]': max_gpu_memory_allocated / 100 * gpu_memory_gb,
         'GPU Power Consumption [Wh]': gpu_power_consumption_Wh,
         'Tokens/s': get_processed_tokens_per_s(df, answers, tokenizer)
     }
@@ -92,9 +98,9 @@ def print_statistics(model_id, stats):
         print(f"\t{k: <40}: {v: <15}")
     print()
 
-def store_statistics(results):
+def store_statistics(results, filepath):
     df = pd.DataFrame.from_dict(results)
-    df.to_csv("results/eval_stats.csv", index=False)
+    df.to_csv(filepath, index=False)
 
 
 def add_statistics_to_dict(dict_, model_id, stats):
@@ -117,35 +123,17 @@ def run_to_model_id(run_id):
 
 
 def main():
-    results = {}
-    for run_id, run_path in runs.items():
-        run, answers = import_wandb_data(run_path, run_id)
-        tokenizer = load_model(run_to_model_id(run_id), load_only_tokenizer=True)
-        system_metrics = extract_relevant_columns(run.history(stream="events"))
-        stats = calculate_statistics(system_metrics, answers, tokenizer)
-        print_statistics(run_id, stats)
-        results = add_statistics_to_dict(results, run_id, stats)
+    for runs, gpu_memory, filepath in [(runs_a100, 40, "results/eval_stats_a100.csv"), (runs_t4, 12, "results/eval_stats_t4.csv")]:
+        results = {}
+        for run_id, run_path in runs.items():
+            run, answers = import_wandb_data(run_path, run_id)
+            tokenizer = load_model(run_to_model_id(run_id), load_only_tokenizer=True)
+            system_metrics = extract_relevant_columns(run.history(stream="events"))
+            stats = calculate_statistics(system_metrics, answers, tokenizer, gpu_memory)
+            print_statistics(run_id, stats)
+            results = add_statistics_to_dict(results, run_id, stats)
 
-    store_statistics(results)
-
-
-    warnings.warn(
-        "This metrics are simplified. For example, we calculate tokens/s by dividing the number of tokens through "
-        "the runtime and ignore the fact that during a run also the model is loaded, tokens are fed into the model"
-        " etc. However, we think that this is a good approximation, as loading the model takes about ~20s and "
-        "evaluation between 30-60min.")
-
+        store_statistics(results, filepath=filepath)
 
 if __name__ == '__main__':
-    # run = wandb.init(project="mt-bench", group="upload-results")
-    # for fname in ["tugg-merged_final_checkpoints_adalora_0",
-    #               "tugg-merged_final_checkpoints_adalora_1",
-    #               "tugg-merged_final_checkpoints_lokr_0",
-    #               "tugg-merged_final_checkpoints_lora_0",
-    #               "tugg-merged_final_checkpoints_lora_1"]:
-    #     artifact = wandb.Artifact(name=fname + "_answers", type="jsonl")
-    #     artifact.add_file(local_path=f"/FastChat/fastchat/llm_judge/data/mt_bench/model_answer/{fname}" + ".jsonl")
-    #     run.log_artifact(artifact)
-    # run.finish()
-
     main()
