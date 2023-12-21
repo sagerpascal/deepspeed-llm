@@ -15,14 +15,14 @@ Vicuna-7B GPTQ,Coding,1.45,,,,
 Vicuna-7B GPTQ,Extraction,3.7,,,,
 Vicuna-7B GPTQ,STEM,6.525,,,,
 Vicuna-7B GPTQ,Humanities,7.125,,,,
-Vicuna-7B AWQ,Writing,7.814814814814815,0.55,0.75,0.65,Vicuna-7B
-Vicuna-7B AWQ,Roleplay,7.428571428571429,0.7,0.8,0.75,Vicuna-7B
-Vicuna-7B AWQ,Reasoning,4.714285714285714,0.4,0.95,0.675,Vicuna-7B
-Vicuna-7B AWQ,Math,1.2916666666666667,0.0,0.85,0.425,Vicuna-7B
+Vicuna-7B AWQ,Writing,8.15,0.55,0.75,0.65,Vicuna-7B
+Vicuna-7B AWQ,Roleplay,7.35,0.7,0.8,0.75,Vicuna-7B
+Vicuna-7B AWQ,Reasoning,4.45,0.4,0.95,0.675,Vicuna-7B
+Vicuna-7B AWQ,Math,1.35,0.0,0.85,0.425,Vicuna-7B
 Vicuna-7B AWQ,Coding,2.75,0.15,0.9,0.525,Vicuna-7B
-Vicuna-7B AWQ,Extraction,6.130434782608695,0.35,0.75,0.55,Vicuna-7B
-Vicuna-7B AWQ,STEM,7.434782608695652,0.65,0.85,0.75,Vicuna-7B
-Vicuna-7B AWQ,Humanities,9.565217391304348,0.65,0.85,0.75,Vicuna-7B
+Vicuna-7B AWQ,Extraction,6.1,0.35,0.75,0.55,Vicuna-7B
+Vicuna-7B AWQ,STEM,7.4,0.65,0.85,0.75,Vicuna-7B
+Vicuna-7B AWQ,Humanities,9.55,0.65,0.85,0.75,Vicuna-7B
 Vicuna-7B,Writing,6.0,,,,
 Vicuna-7B,Roleplay,5.1,,,,
 Vicuna-7B,Reasoning,2.1,,,,
