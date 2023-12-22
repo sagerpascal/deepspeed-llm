@@ -1,11 +1,9 @@
-import warnings
 from pathlib import Path
 
 import pandas as pd
 import wandb
 
 from eval.gen_model_answers import load_model
-
 
 runs_a100 = {
     'Llama-2-7b-no-deactivate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench/01v5xef5',
@@ -33,7 +31,10 @@ runs_a100 = {
 }
 
 runs_t4 = {
-
+    'Llama-2-7b-chat-bnb-activate_4bit-deactivate_nested-float16-fp4': 'sagerpascal/mt-bench-t4/jgjid4dw',
+    'Llama-2-7b-chat-bnb-activate_4bit-activate_nested-float16-fp4': 'sagerpascal/mt-bench-t4/htz3dagx',
+    'Llama-2-7b-chat-awq-activate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench-t4/201xiqwb',
+    'Llama-2-7b-chat-gptq-activate_4bit-deactivate_nested-float16-nf4': 'sagerpascal/mt-bench-t4/269vxm01',
 }
 
 
@@ -98,6 +99,7 @@ def print_statistics(model_id, stats):
         print(f"\t{k: <40}: {v: <15}")
     print()
 
+
 def store_statistics(results, filepath):
     df = pd.DataFrame.from_dict(results)
     df.to_csv(filepath, index=False)
@@ -123,7 +125,8 @@ def run_to_model_id(run_id):
 
 
 def main():
-    for runs, gpu_memory, filepath in [(runs_a100, 40, "results/eval_stats_a100.csv"), (runs_t4, 12, "results/eval_stats_t4.csv")]:
+    for runs, gpu_memory, filepath in [#(runs_a100, 40, "results/eval_stats_a100.csv"),
+                                       (runs_t4, 16, "results/eval_stats_t4.csv")]:
         results = {}
         for run_id, run_path in runs.items():
             run, answers = import_wandb_data(run_path, run_id)
@@ -134,6 +137,7 @@ def main():
             results = add_statistics_to_dict(results, run_id, stats)
 
         store_statistics(results, filepath=filepath)
+
 
 if __name__ == '__main__':
     main()
