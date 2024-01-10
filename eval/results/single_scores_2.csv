@@ -1,4 +1,4 @@
-model,category,score,winrate,wtrate,wtrate_sage,baseline
+Model,category,score,winrate,wtrate,wtrate_sage,baseline
 LLamaV2-7B-Chat AWQ,Writing,7.85,,,,
 LLamaV2-7B-Chat AWQ,Roleplay,7.1,,,,
 LLamaV2-7B-Chat AWQ,Reasoning,3.4,,,,

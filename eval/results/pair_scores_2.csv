@@ -1,4 +1,4 @@
-model,category,score,winrate,wtrate,wtrate_sage,baseline
+Model,category,score,winrate,wtrate,wtrate_sage,baseline
 LlamaV2-7B Q-LoRA Finetuned,Writing,5.105263157894737,1.0,1.0,1.0,LLamaV2-7B Baseline
 LlamaV2-7B Q-LoRA Finetuned,Roleplay,7.275,0.95,1.0,0.975,LLamaV2-7B Baseline
 LlamaV2-7B Q-LoRA Finetuned,Reasoning,2.9,0.35,1.0,0.675,LLamaV2-7B Baseline
